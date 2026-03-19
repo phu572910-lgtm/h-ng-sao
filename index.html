@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò chơi Hứng Sao - Web Version</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1a1a1a;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+        }
+        canvas {
+            border: 2px solid #555;
+            background-color: black;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Thiết lập kích thước giống Python (600x600)
+    canvas.width = 600;
+    canvas.height = 600;
+
+    // Biến khởi tạo
+    let score = 0;
+    let lives = 3;
+    let gameOver = false;
+
+    // Người chơi (Cái giỏ)
+    const player = {
+        width: 100,
+        height: 20,
+        x: canvas.width / 2 - 50,
+        y: canvas.height - 50,
+        speed: 30
+    };
+
+    // Ngôi sao
+    const star = {
+        radius: 10,
+        x: Math.random() * (canvas.width - 20) + 10,
+        y: 50,
+        speed: 3 // Tốc độ rơi trên web cần nhanh hơn một chút để mượt
+    };
+
+    // Điều khiển bằng bàn phím
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft" && player.x > 0) {
+            player.x -= player.speed;
+        } else if (e.key === "ArrowRight" && player.x < canvas.width - player.width) {
+            player.x += player.speed;
+        }
+    });
+
+    function draw() {
+        if (gameOver) return;
+
+        // Xóa màn hình để vẽ khung hình mới
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Vẽ người chơi
+        ctx.fillStyle = "cyan";
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+
+        // Vẽ ngôi sao
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "yellow";
+        ctx.fill();
+        ctx.closePath();
+
+        // Vẽ điểm số
+        ctx.fillStyle = "white";
+        ctx.font = "20px Courier New";
+        ctx.textAlign = "center";
+        ctx.fillText(`Điểm: ${score}  Mạng: ${lives}`, canvas.width / 2, 30);
+
+        // Di chuyển ngôi sao
+        star.y += star.speed;
+
+        // Kiểm tra va chạm (Hứng được sao)
+        if (star.y + star.radius > player.y && 
+            star.x > player.x && 
+            star.x < player.x + player.width) {
+            score++;
+            resetStar();
+        }
+
+        // Kiểm tra nếu rơi ra ngoài
+        if (star.y > canvas.height) {
+            lives--;
+            if (lives <= 0) {
+                endGame();
+            } else {
+                resetStar();
+            }
+        }
+
+        requestAnimationFrame(draw);
+    }
+
+    function resetStar() {
+        star.y = 0;
+        star.x = Math.random() * (canvas.width - 20) + 10;
+        // Tăng độ khó dần dần
+        star.speed += 0.1;
+    }
+
+    function endGame() {
+        gameOver = true;
+        ctx.fillStyle = "white";
+        ctx.font = "40px Courier New";
+        ctx.textAlign = "center";
+        ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
+        ctx.font = "20px Courier New";
+        ctx.fillText("F5 để chơi lại", canvas.width / 2, canvas.height / 2 + 50);
+    }
+
+    // Bắt đầu vòng lặp game
+    draw();
+</script>
+</body>
+</html>
